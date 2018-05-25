@@ -118,6 +118,23 @@ int	createListeningSocket	(int		argc,
   int socketDescriptor;
 
   //  YOUR CODE HERE
+  socketDescriptor = socket(AF_INET, SOCK_STREAM, 0);
+
+  struct sockaddr_in socketInfo;
+  memset(&socketInfo,'\0',sizeof(socketInfo));
+  socketInfo.sin_family = AF_INET;
+  socketInfo.sin_port = htons(port);
+  socketInfo.sin_addr.s_addr = INADDR_ANY;
+
+  int status = bind(socketDescriptor, (struct sockaddr*)&socketInfo, sizeof(socketInfo)); 
+  
+  if  (status < 0) {
+    fprintf(stderr,"Could not bind to port %d\n",port);
+    exit(EXIT_FAILURE);
+  }
+
+  listen(socketDescriptor,5);
+  // done
 
   //  III.  Finished:
   return(socketDescriptor);
@@ -145,9 +162,9 @@ char*	obtainPassword	(int		argc,
   FILE* passwordFilePtr;
 
   //  YOUR CODE HERE
+  int pwFd = open(passwordFilename, O_RDONLY);
 
-  if  ( true // CHANGE THIS
-      )
+  if  (pwFd < 0) // CHANGE THIS -- done 
   {
     printf("Couldn't read %s, password for clients? ",passwordFilename);
     fgets(password,maxLength,stdin);
@@ -155,6 +172,7 @@ char*	obtainPassword	(int		argc,
   else
   {
     //  DEPENDING ON HOW YOU OPEN YOUR FILE, MAYBE SOMETHING HERE
+    read(pwFd, password, maxLength-1);
   }
 
   removeEndingNewline(password,maxLength);
@@ -378,7 +396,14 @@ int	main		(int		argc,
 
   obtainPassword(argc,argv,password,MAX_PASSWORD_LEN);
   //  YOUR CODE HERE to make sigchld_handler() the handler for SIGCHLD
-
+  struct sigaction act;
+  memset(&act,'\0',sizeof(struct sigaction));
+  sigemptyset(&act.sa_mask);
+  act.sa_flags = SA_NOCLDSTOP | SA_RESTART;
+  act.sa_handler = sigchld_handler;
+  sigaction(SIGCHLD,&act,NULL);
+  // done
+  
   //  II.B.  Do server:
   doServer(listeningSocketId,password);
 
