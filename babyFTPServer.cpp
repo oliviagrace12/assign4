@@ -199,22 +199,20 @@ bool	didLogin	(int		clientFD,
   char	buffer[MAX_LINE];
 
   //  YOUR CODE HERE
+  read(clientFD, buffer, MAX_LINE);
 
   //  II.B.  Handle when user's password does NOT match:
-  if  ( strncmp(removeEndingNewline(buffer,MAX_LINE),
-		password,
-		MAX_PASSWORD_LEN
-	       )
-	!= 0
-      )
+  if (strncmp(removeEndingNewline(buffer,MAX_LINE), password, MAX_PASSWORD_LEN) != 0)
   {
     //  YOUR CODE HERE
+    write(clientFD, BAD_PASSWORD_RESPONSE, strlen(BAD_PASSWORD_RESPONSE) + 1);
     printf("Process %d bad password.\n",getpid());
     return(false);
   }
 
   //  II.C.  If get here then user's password does match:
   //  YOUR CODE HERE
+  write(clientFD, GOOD_PASSWORD_RESPONSE, strlen(GOOD_PASSWORD_RESPONSE) + 1);
   printf("Process %d good password.\n",getpid());
 
   //  III.  Finished:
