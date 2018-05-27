@@ -172,6 +172,7 @@ char*	obtainPassword	(int		argc,
 
   //  YOUR CODE HERE
   int pwFd = open(passwordFilename, O_RDONLY);
+  printf("pwFd: %d\n", pwFd);
 
   if  (pwFd < 0) // CHANGE THIS -- done 
   {
@@ -182,10 +183,12 @@ char*	obtainPassword	(int		argc,
   {
     //  DEPENDING ON HOW YOU OPEN YOUR FILE, MAYBE SOMETHING HERE
     read(pwFd, password, maxLength-1);
+    printf("Password from file: %s\n", password);
   }
 
   removeEndingNewline(password,maxLength);
 
+  printf("Password: %s\n", password);
   //  III.  Finished:
   return(password);
 }
@@ -250,15 +253,17 @@ void	listDir		(int		clientFD
     if (DT_REG == dirEntry->d_type) {
       snprintf(buffer, MAX_LINE, "%30s (%5d)", dirEntry->d_name, dirEntry->d_reclen);
     } else if (DT_DIR == dirEntry->d_type) {
-      snprintf(buffer, MAX_LINE, "%30s (dir)", dirEntry->d_name);
+      snprintf(buffer, MAX_LINE, "%30s ( dir )", dirEntry->d_name);
     } else {
       snprintf(buffer, MAX_LINE, "%30s (other)", dirEntry->d_name);
     }
+    write(clientFD, buffer, MAX_LINE);
   } 
    
   closedir(dirPtr);
-  snprintf(buffer, MAX_LINE, "%s, %d", END_RESPONSE, MAX_LINE);
-  write(clientFD, buffer, sizeof(buffer));  
+  
+  snprintf(buffer, MAX_LINE, "%s", END_RESPONSE);
+  write(clientFD, buffer, MAX_LINE);  
 
   //  III.  Finished:
   printf("Process %d finished listing current directory.\n",getpid());
@@ -297,19 +302,20 @@ void	getFile		(int		clientFD
   stat(filename, &statBuffer);  
 
   //  II.D.  Tell client about the file:
-  printf("Process %d getting %s.\n",getpid(),buffer);
+  printf("Process %d getting %s.\n",getpid(),filename);
   fflush(stdout);
 
   //  II.D.1.  Tell client how many bytes the file has:
   //  YOUR CODE HERE
+  printf("number of bytes in file %s: %ld\n", filename, statBuffer.st_size);
   long bytes = htonl(statBuffer.st_size);
-  snprintf(buffer, MAX_LINE, "bytes: %d", bytes);
-  write(clientFD, buffer, sizeof(bytes));
+  write(clientFD, &bytes, sizeof(bytes));
 
   //  II.D.2.  Tell client the chars of the file:
   //  YOUR CODE HERE
   int numBytes;
   while ((numBytes = read(file, buffer, MAX_LINE)) > 0) {
+    printf("Found in buffer: %s\n", buffer);
     write(clientFD, buffer, numBytes);
   }
 
