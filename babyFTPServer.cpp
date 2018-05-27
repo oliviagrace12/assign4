@@ -51,6 +51,15 @@ void	sigchld_handler		(int	sig
   pid_t	pid;
 
   //  YOUR CODE
+  while( (pid = waitpid(-1,&status, WNOHANG)) > 0) {
+  //  YOUR CODE
+    if (WIFEXITED(status)) {
+      printf("Process %d finished with return value %d\n", pid, status);
+    } else {
+      printf("Process %d crashed.\n", pid);
+    }
+  }
+
 
   fflush(stdout);
 }
