@@ -238,9 +238,9 @@ void	listDir		(int		clientFD
   struct dirent* dirEntry;
 
   while ((dirEntry = readdir(dirPtr)) != NULL) {
-    if (S_ISREG(dirEntry->d_type)) {
+    if (DT_REG == dirEntry->d_type) {
       snprintf(buffer, MAX_LINE, "%30s (%5d)", dirEntry->d_name, dirEntry->d_reclen);
-    } else if (S_ISDIR(dirEntry->d_type)) {
+    } else if (DT_DIR == dirEntry->d_type) {
       snprintf(buffer, MAX_LINE, "%30s (dir)", dirEntry->d_name);
     } else {
       snprintf(buffer, MAX_LINE, "%30s (other)", dirEntry->d_name);
@@ -272,12 +272,20 @@ void	getFile		(int		clientFD
   char	filename[MAX_LINE];
 
   //  YOUR CODE HERE
+  read(clientFD, filename, MAX_LINE);
 
   //  II.B.  Attempt to open file:
-  //  YOUR CODE HERE
+  int file = open(filename, O_RDONLY, 0);
+  if (file < 0 ) {
+    snprintf(buffer, MAX_LINE, "%d", htonl(file));
+    write(clientFD, buffer, 4);
+    return;
+  }
 
   //  II.C.  Attempt to get file's size:
   //  YOUR CODE HERE
+  struct stat statBuffer;
+  stat(filename, &statBuffer);  
 
   //  II.D.  Tell client about the file:
   printf("Process %d getting %s.\n",getpid(),buffer);
@@ -285,15 +293,23 @@ void	getFile		(int		clientFD
 
   //  II.D.1.  Tell client how many bytes the file has:
   //  YOUR CODE HERE
+  long bytes = htonl(statBuffer.st_size);
+  snprintf(buffer, MAX_LINE, "bytes: %d", bytes);
+  write(clientFD, buffer, sizeof(bytes));
 
   //  II.D.2.  Tell client the chars of the file:
   //  YOUR CODE HERE
+  int numBytes;
+  while ((numBytes = read(file, buffer, MAX_LINE)) > 0) {
+    write(clientFD, buffer, numBytes);
+  }
 
   //  II.E.  Close file:
   //  YOUR CODE HERE
-
+  close(file);
+  
   //  III.  Finished:
-  // TODO UNCOMMENT printf("Process %d read file %s.\n",getpid(),<yourFileNameVar>);
+  printf("Process %d read file %s.\n",getpid(),filename);
   fflush(stdout);
 }
 
