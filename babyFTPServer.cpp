@@ -234,6 +234,22 @@ void	listDir		(int		clientFD
   //  II.A.  Attempt to open the directory:
   char	buffer[MAX_LINE];
   //  YOUR CODE HERE
+  DIR* dirPtr = opendir(DIR_NAME);
+  struct dirent* dirEntry;
+
+  while ((dirEntry = readdir(dirPtr)) != NULL) {
+    if (S_ISREG(dirEntry->d_type)) {
+      snprintf(buffer, MAX_LINE, "%30s (%5d)", dirEntry->d_name, dirEntry->d_reclen);
+    } else if (S_ISDIR(dirEntry->d_type)) {
+      snprintf(buffer, MAX_LINE, "%30s (dir)", dirEntry->d_name);
+    } else {
+      snprintf(buffer, MAX_LINE, "%30s (other)", dirEntry->d_name);
+    }
+  } 
+   
+  closedir(dirPtr);
+  snprintf(buffer, MAX_LINE, "%s, %d", END_RESPONSE, MAX_LINE);
+  write(clientFD, buffer, sizeof(buffer));  
 
   //  III.  Finished:
   printf("Process %d finished listing current directory.\n",getpid());
@@ -277,7 +293,7 @@ void	getFile		(int		clientFD
   //  YOUR CODE HERE
 
   //  III.  Finished:
-  printf("Process %d read file %s.\n",getpid(),<yourFileNameVar>);
+  // TODO UNCOMMENT printf("Process %d read file %s.\n",getpid(),<yourFileNameVar>);
   fflush(stdout);
 }
 
